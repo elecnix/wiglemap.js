@@ -1,0 +1,10 @@
+{
+  "name": "wiglemap.js",
+  "description": "Map wifi access points using wigle.net data",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "sqlite3": "2.x"
+  }
+}
+
