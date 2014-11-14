@@ -2,6 +2,7 @@ var http = require('http');
 var url = require('url');
 var port = 2412;
 var sqlite3 = require('sqlite3').verbose();
+var _ = require('lodash');
 var db = new sqlite3.Database('wiglewifi.sqlite', sqlite3.OPEN_READONLY);
 db.serialize(function() {
   http.createServer(function (request, response) {
@@ -9,7 +10,7 @@ db.serialize(function() {
     console.log('url: ', request.url);
     console.log('bssids: ' + bssids);
     if (!bssids) {
-      response.writeHead(404, {'Content-Type': 'text/plain'});
+      response.writeHead(204, {'Content-Type': 'text/plain'});
       response.end('Missing bssids!\n');
       return;
     }
@@ -23,10 +24,22 @@ db.serialize(function() {
         response.end(JSON.stringify(err));
       } else {
         response.writeHead(200, {'Content-Type': 'text/json'});
-        response.end(JSON.stringify(rows));
+        response.write('BSSID\tLatitude\tLongitude\tNode\tMarker\n');
+        var index = _.indexBy(rows, 'bssid');
+        var mapped = _.reduce(index, function(result, value, bssid) {
+          if (result[bssid]) {
+            value['lat'] = (value['lat'] + result[bssid]['lat']) / 2;
+            value['lon'] = (value['lon'] + result[bssid]['lon']) / 2;
+          }
+          result[bssid] = value;
+          return result;
+        }, {});
+        _.forEach(mapped, function(observation) {
+          response.write(observation.bssid + '\t' + observation.lat + '\t' + observation.lon + '\t' + 'amman\tlarge_blue' + '\n');
+        });
+        response.end();
       }
     });
   }).listen(port);
   console.log('Server running at http://127.0.0.1:' + port + '/');
 });
-
