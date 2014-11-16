@@ -5,6 +5,8 @@
   "private": true,
   "dependencies": {
     "sqlite3": "2.x",
-    "lodash": "2.x"
+    "lodash": "2.x",
+    "express": "3.4.0",
+    "jade": "*"
   }
 }
