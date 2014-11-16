@@ -1,0 +1,10 @@
+doctype html
+html
+  head
+    title= title
+  body
+    h1 BSSID ⇒ map
+    form(action='/networks',method='post')
+      div
+        input(type='submit', value="Map!")
+      textarea(cols=30,rows=30,name='bssids')

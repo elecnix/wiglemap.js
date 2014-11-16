@@ -3,12 +3,14 @@ var http = require('http');
 var url = require('url');
 var sqlite3 = require('sqlite3').verbose();
 var _ = require('lodash');
+var path = require('path');
 var db = new sqlite3.Database('wiglewifi.sqlite', sqlite3.OPEN_READONLY);
 var app = express();
 app.set('port', process.env.PORT || 2412);
 app.set('view engine', 'jade');
 app.use(express.urlencoded());
 app.use(app.router);
+app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function(req, res) {
   res.render('form');
 });
@@ -34,8 +36,6 @@ app.post('/networks', function(request, response, next) {
       response.writeHead(500, {'Content-Type': 'text/plain'});
       response.end(JSON.stringify(err));
     } else {
-      response.writeHead(200, {'Content-Type': 'text/json'});
-      response.write('BSSID\tLatitude\tLongitude\tNode\tMarker\n');
       var index = _.indexBy(rows, 'bssid');
       var mapped = _.reduce(index, function(result, value, bssid) {
         if (result[bssid]) {
@@ -45,10 +45,7 @@ app.post('/networks', function(request, response, next) {
         result[bssid] = value;
         return result;
       }, {});
-      _.forEach(mapped, function(observation) {
-        response.write(observation.bssid + '\t' + observation.lat + '\t' + observation.lon + '\t' + 'amman\tlarge_blue' + '\n');
-      });
-      response.end();
+      response.render('map', {result: mapped, _: _});
     }
   });
 });
