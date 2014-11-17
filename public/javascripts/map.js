@@ -5,23 +5,21 @@ function initialize() {
     center: new google.maps.LatLng(45.506640, -73.603076)
   };
   map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-
-  var marker, i;
-  for (i = 0; i < locs.length; i++) {
-    marker = new google.maps.Marker({
+  var infowindow = new google.maps.InfoWindow();
+  for (var i = 0; i < locs.length; i++) {
+    var point = locs[i];
+    var marker = new google.maps.Marker({
       position: new google.maps.LatLng(locs[i].lat, locs[i].lon),
       map: map
     });
-    var contentString = '<div id="info">'+
-        '<div><b>BSSID:</b>&nbsp;<a href="/bssid/' + locs[i].bssid + '">' + locs[i].bssid + '</a></div>'+
-        '<div><b>Accuracy:</b>&nbsp;' + locs[i].accuracy + '</div>'+
-        '<div><b>Observation Date:</b>&nbsp;' + new Date(locs[i].time*1000) + '</div>'+
+    marker.content= '<div class="infowindow">'+
+        '<div><b>BSSID:</b>&nbsp;<a href="/bssid/' + point.bssid + '">' + point.bssid + '</a></div>'+
+        (point.accuracy ? '<div><b>Accuracy:</b>&nbsp;' + point.accuracy + '</div>' : '')+
+        (point.time ? '<div><b>Observation Date:</b>&nbsp;' + new Date(point.time) + '</div>' : '')+
         '</div>';
-    var infowindow = new google.maps.InfoWindow({
-        content: contentString
-    });
     google.maps.event.addListener(marker, 'click', function() {
-      infowindow.open(map, marker);
+      infowindow.setContent(this.content);
+      infowindow.open(this.getMap(), this);
     });
   }
 }
