@@ -16,14 +16,14 @@ app.get('/', function(req, res) {
   res.render('form');
 });
 app.post('/networks', function(request, response, next) {
+  var id = randomstring.generate(7);
   var bssids = url.parse(request.url, true)['query']['bssids'];
   if (bssids) {
     bssids = bssids.split(',');
   } else {
     bssids = request.body.bssids.replace(/ /g, '').split('\r\n');
   }
-  console.log('url: ', request.url);
-  console.log('bssids: ' + bssids);
+  console.log('id: ' + id + ', bssids: ' + bssids);
   if (!bssids) {
     response.writeHead(204, {'Content-Type': 'text/plain'});
     response.end('Missing bssids!\n');
@@ -46,13 +46,13 @@ app.post('/networks', function(request, response, next) {
         result[bssid] = value;
         return result;
       }, {});
-      var id = randomstring.generate(7);
       var stmt = db.prepare("INSERT INTO map(id, bssid, lat, lon) VALUES (?, ?, ?, ?)");
       _.forEach(mapped, function(point) {
         stmt.run(id, point.bssid, point.lat, point.lon);
       });
-      stmt.finalize();
-      response.redirect('/scan/' + id);
+      stmt.finalize(function() {
+        response.redirect('/scan/' + id);
+      });
     }
   });
 });
@@ -64,7 +64,7 @@ app.get('/scan/:id', function(request, response) {
       response.end(JSON.stringify(err));
     } else {
       rows = _.map(rows, function(row) {return {bssid: row.bssid, lat: row.lat, lon: row.lon}});
-      console.log(JSON.stringify(rows));
+      //console.log(JSON.stringify(rows));
       response.render('map', {result: rows, _: _});
     }
   });
