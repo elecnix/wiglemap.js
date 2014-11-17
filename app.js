@@ -15,6 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', function(req, res) {
   res.render('form');
 });
+var quote = function(str) {return "'" + str.replace("'", "''") + "'"};
 app.post('/networks', function(request, response, next) {
   var id = randomstring.generate(7);
   var bssids = url.parse(request.url, true)['query']['bssids'];
@@ -29,7 +30,6 @@ app.post('/networks', function(request, response, next) {
     response.end('Missing bssids!\n');
     return;
   }
-  var quote = function(str) {return "'" + str.replace("'", "''") + "'"};
   var sql = "select network.bssid, network.ssid, lat, lon from location JOIN network on network.bssid = location.bssid where location.bssid in (" + bssids.map(quote).join(",") + ") order by time desc";
   console.log(sql);
   db.all(sql, function(err, rows) {
@@ -56,8 +56,8 @@ app.post('/networks', function(request, response, next) {
   });
 });
 app.get('/scan/:id', function(request, response) {
-  var sql = "select * from map where id = ?";
-  db.all(sql, request.params.id, function(err, rows) {
+  var sql = "select * from map where id in (" + request.params.id.split(',').map(quote).join(",") + ")";
+  db.all(sql, function(err, rows) {
     if (err) {
       response.writeHead(500, {'Content-Type': 'text/plain'});
       response.end(JSON.stringify(err));
