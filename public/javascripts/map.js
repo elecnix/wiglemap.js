@@ -13,7 +13,9 @@ function initialize() {
       map: map
     });
     var contentString = '<div id="info">'+
-        '<b>BSSID</b>&nbsp;' + locs[i].bssid +
+        '<div><b>BSSID:</b>&nbsp;<a href="/bssid/' + locs[i].bssid + '">' + locs[i].bssid + '</a></div>'+
+        '<div><b>Accuracy:</b>&nbsp;' + locs[i].accuracy + '</div>'+
+        '<div><b>Observation Date:</b>&nbsp;' + new Date(locs[i].time*1000) + '</div>'+
         '</div>';
     var infowindow = new google.maps.InfoWindow({
         content: contentString

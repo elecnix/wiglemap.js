@@ -69,6 +69,17 @@ app.get('/scan/:id', function(request, response) {
     }
   });
 });
+app.get('/bssid/:bssid', function(request, response) {
+  var sql = "select * from location where bssid = ?";
+  db.all(sql, request.params.bssid, function(err, rows) {
+    if (err) {
+      response.writeHead(500, {'Content-Type': 'text/plain'});
+      response.end(JSON.stringify(err));
+    } else {
+      response.render('map', {result: rows, _: _});
+    }
+  });
+});
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));
 });
