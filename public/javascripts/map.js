@@ -14,6 +14,7 @@ function initialize() {
     });
     marker.content= '<div class="infowindow">'+
         '<div><b>BSSID:</b>&nbsp;<a href="/bssid/' + point.bssid + '">' + point.bssid + '</a></div>'+
+        '<div><b>SSID:</b>&nbsp;' + point.ssid + '</div>'+
         (point.accuracy ? '<div><b>Accuracy:</b>&nbsp;' + point.accuracy + '</div>' : '')+
         (point.time ? '<div><b>Observation Date:</b>&nbsp;' + new Date(point.time) + '</div>' : '')+
         '</div>';

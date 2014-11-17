@@ -30,25 +30,24 @@ app.post('/networks', function(request, response, next) {
     return;
   }
   var quote = function(str) {return "'" + str.replace("'", "''") + "'"};
-  var sql = "select bssid, lat, lon from location where bssid in (" + bssids.map(quote).join(",") + ")";
+  var sql = "select network.bssid, network.ssid, lat, lon from location JOIN network on network.bssid = location.bssid where location.bssid in (" + bssids.map(quote).join(",") + ") order by time desc";
   console.log(sql);
   db.all(sql, function(err, rows) {
     if (err) {
       response.writeHead(500, {'Content-Type': 'text/plain'});
       response.end(JSON.stringify(err));
     } else {
-      var index = _.indexBy(rows, 'bssid');
-      var mapped = _.reduce(index, function(result, value, bssid) {
-        if (result[bssid]) {
-          value['lat'] = (value['lat'] + result[bssid]['lat']) / 2;
-          value['lon'] = (value['lon'] + result[bssid]['lon']) / 2;
+      var reduced = _.reduce(rows, function(result, row) {
+        if (result[row.bssid]) {
+          row['lat'] = (row.lat + result[row.bssid].lat) / 2;
+          row['lon'] = (row.lon + result[row.bssid].lon) / 2;
         }
-        result[bssid] = value;
+        result[row.bssid] = row;
         return result;
       }, {});
-      var stmt = db.prepare("INSERT INTO map(id, bssid, lat, lon) VALUES (?, ?, ?, ?)");
-      _.forEach(mapped, function(point) {
-        stmt.run(id, point.bssid, point.lat, point.lon);
+      var stmt = db.prepare("INSERT INTO map(id, bssid, ssid, lat, lon) VALUES (?, ?, ?, ?, ?)");
+      _.forEach(reduced, function(point) {
+        stmt.run(id, point.bssid, point.ssid, point.lat, point.lon);
       });
       stmt.finalize(function() {
         response.redirect('/scan/' + id);
@@ -63,14 +62,12 @@ app.get('/scan/:id', function(request, response) {
       response.writeHead(500, {'Content-Type': 'text/plain'});
       response.end(JSON.stringify(err));
     } else {
-      rows = _.map(rows, function(row) {return {bssid: row.bssid, lat: row.lat, lon: row.lon}});
-      //console.log(JSON.stringify(rows));
       response.render('map', {result: rows, _: _});
     }
   });
 });
 app.get('/bssid/:bssid', function(request, response) {
-  var sql = "select * from location where bssid = ?";
+  var sql = "select * from location JOIN network on network.bssid = location.bssid where location.bssid = ?";
   db.all(sql, request.params.bssid, function(err, rows) {
     if (err) {
       response.writeHead(500, {'Content-Type': 'text/plain'});
