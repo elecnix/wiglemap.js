@@ -3,5 +3,7 @@ Run:
 # npm install
 # node app.js
 
+# sqlite3 -cmd 'CREATE TABLE map (id text, bssid text, lat double, lon double)' wiglewifi.sqlite
+
 # echo $'BSSID\tLatitude\tLongitude' > scan.csv
 # wget -O 'scan.csv' http://elecnix.duckdns.org:2412/?bssids=$(cat 'scan.txt' |grep ^BSS|sed -e 's/BSS \(.*\) (.*/\1/'|sort|uniq|grep -v 02:ca:ff:ee:ba:be|tr '\n' ',')

@@ -5,7 +5,7 @@ html
     script(src="https://maps.googleapis.com/maps/api/js?v=3.exp")
     script(type='text/javascript').
       var locs = [#{_.map(result, function(obs) {return '[' + obs.lat + "," + obs.lon + ']'})}];
-    script(src='javascripts/map.js')
-    link(rel="stylesheet" href="stylesheets/app.css")
+    script(src='/javascripts/map.js')
+    link(rel="stylesheet" href="/stylesheets/app.css")
   body
     div#map-canvas

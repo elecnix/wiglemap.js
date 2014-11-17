@@ -4,7 +4,8 @@ var url = require('url');
 var sqlite3 = require('sqlite3').verbose();
 var _ = require('lodash');
 var path = require('path');
-var db = new sqlite3.Database('wiglewifi.sqlite', sqlite3.OPEN_READONLY);
+var randomstring = require('randomstring');
+var db = new sqlite3.Database('wiglewifi.sqlite', sqlite3.OPEN_READWRITE);
 var app = express();
 app.set('port', process.env.PORT || 2412);
 app.set('view engine', 'jade');
@@ -45,7 +46,26 @@ app.post('/networks', function(request, response, next) {
         result[bssid] = value;
         return result;
       }, {});
-      response.render('map', {result: mapped, _: _});
+      var id = randomstring.generate(7);
+      var stmt = db.prepare("INSERT INTO map(id, bssid, lat, lon) VALUES (?, ?, ?, ?)");
+      _.forEach(mapped, function(point) {
+        stmt.run(id, point.bssid, point.lat, point.lon);
+      });
+      stmt.finalize();
+      response.redirect('/scan/' + id);
+    }
+  });
+});
+app.get('/scan/:id', function(request, response) {
+  var sql = "select * from map where id = ?";
+  db.all(sql, request.params.id, function(err, rows) {
+    if (err) {
+      response.writeHead(500, {'Content-Type': 'text/plain'});
+      response.end(JSON.stringify(err));
+    } else {
+      rows = _.map(rows, function(row) {return {bssid: row.bssid, lat: row.lat, lon: row.lon}});
+      console.log(JSON.stringify(rows));
+      response.render('map', {result: rows, _: _});
     }
   });
 });
